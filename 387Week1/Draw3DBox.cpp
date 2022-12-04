@@ -95,6 +95,10 @@ int main(int argc, char* argv[])
     SandController sandController(sandBoxSize,boxScale,space);
     sandController.Init();
 
+    int fps = 0;
+
+    float fpsTimer = 0;
+
     long lastFrameTime = 0;
     long deltaTime = 0;
     float deltaTimeS;
@@ -149,8 +153,21 @@ int main(int argc, char* argv[])
         sandController.DrawAllSand(renderer);
         if (timer >= SimulateFrequency)
         {
+            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2);
+            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2 + 1);
+            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + 1);
+            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
             sandController.UpdateSandPos();
             timer = 0;
+        }
+
+        fps++;
+        fpsTimer += deltaTimeS;
+        if (fpsTimer >= 1)
+        {
+            cout << "FPS: " << fps << endl;
+            fps = 0;
+            fpsTimer = 0;
         }
 
         renderer->endRender();
