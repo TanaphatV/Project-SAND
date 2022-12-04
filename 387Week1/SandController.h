@@ -22,8 +22,7 @@ public:
 		int temp = x * height * depth + y * depth + z;
 		int index = temp / 8;
 		int dif = temp - (index * 8);
-		cout << dif << endl;
-		return data.at(index) | (1 << dif);
+		return data.at(index) & (1 << dif);
 	}
 
 	bool at(sandPos s)
@@ -31,9 +30,8 @@ public:
 		int temp = s.x * height * depth + s.y * depth + s.z;
 		int index = temp / 8;
 		int dif = temp - (index * 8);
-		cout << dif << endl;
 
-		return data.at(index) | (1 << dif);
+		return data.at(index) & (1 << dif);
 	}
 
 	void set(size_t x, size_t y, size_t z, bool val)
@@ -79,7 +77,7 @@ class SandController
 
 		int size;
 		Array3d sandGrid;
-		//Array3d fixedSandGrid;
+		Array3d fixedSandGrid;
 		vector<glm::mat4> sandMat;//unfixed sand that are still moving
 		vector<pair<glm::mat4, sandPos>> fixedSand;//fixed sand store still sands
 		vector<sandPos> sandToUpdate;//used to help excluding sands that doesnt need updating

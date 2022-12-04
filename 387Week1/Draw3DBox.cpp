@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     long deltaTime = 0;
     float deltaTimeS;
     float timer = 0;
-    float SimulateFrequency = 0.007f;
+    float SimulateFrequency = 0.0001f;
     // Game loop
     while (!quit)
     {
@@ -124,7 +124,6 @@ int main(int argc, char* argv[])
                     angleX += 2;
                     break;
                 case SDLK_SPACE:
-                    cout << "SPACE";
                     sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2);
                     sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2 + 1);
                     sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + 1);
