@@ -4,7 +4,7 @@
 //TODO: REMOVE SAND THAT IS ON THE INSIDE SOMEHOW
 //===============================================
 
-SandController::SandController(int size, float boxScale, glm::mat4 center)/*, fixedSandGrid(size/2,size/2,size/2)*/{
+SandController::SandController(int size, float boxScale, glm::mat4 center) : sandGrid(size,size,size){
 	this->size = size;
 	this->boxScale = glm::vec3(boxScale,boxScale,boxScale);
 	box = glm::translate(center, glm::vec3(-1, -1, -1));//start at bottom left
@@ -133,6 +133,7 @@ void SandController::AddSand(int x,int y, int z)
 		return;
 	if (!sandGrid.at(x,y,z))
 	{
+		cout << "ADD" << endl;
 		sandToUpdate.push_back(sandPos(x, y, z));
 		sandGrid.set(x, y, z,true);
 	}

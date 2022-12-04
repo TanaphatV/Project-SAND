@@ -1,49 +1,74 @@
 #pragma once
 #include "BoxMesh.h"
 #include <vector>
-#include <bitset>
-#define WIDTH 100
-#define HEIGHT 100
-#define DEPTH 100
 
 typedef glm::vec<3,int,glm::packed_highp> sandPos;
 
 class Array3d
 {
-	size_t height, depth;
-	bitset<WIDTH * HEIGHT * DEPTH> data;// need to be char cuz bool can't be lvalue lmao
+	size_t width, height, depth;
+	vector<unsigned char> data;// need to be char cuz bool can't be lvalue lmao
 
 public:
-	Array3d(){}
+	Array3d(size_t width, size_t height, size_t depth) :
+		width(width),
+		height(height),
+		depth(depth),
+		data(((width* height* depth)/8) + 1)
+	{}
 
 	bool at(size_t x, size_t y, size_t z)
 	{
-		return data[x * height * depth + y * depth + z];
+		int temp = x * height * depth + y * depth + z;
+		int index = temp / 8;
+		int dif = temp - (index * 8);
+		cout << dif << endl;
+		return data.at(index) | (1 << dif);
 	}
 
 	bool at(sandPos s)
 	{
-		return data[s.x * height * depth + s.y * depth + s.z];
-	}
+		int temp = s.x * height * depth + s.y * depth + s.z;
+		int index = temp / 8;
+		int dif = temp - (index * 8);
+		cout << dif << endl;
 
-	void set(sandPos s,bool val)
-	{
-		data[s.x * height * depth + s.y * depth + s.z] = val;
+		return data.at(index) | (1 << dif);
 	}
 
 	void set(size_t x, size_t y, size_t z, bool val)
 	{
-		data[x * height * depth + y * depth + z] = val;
+		int temp = x * height * depth + y * depth + z;
+		int index = temp / 8;
+		int dif = temp - (index * 8);
+
+		if(val)
+			data.at(index) |= (1 << dif);
+		else
+			data.at(index) &= ~(1 << dif);
+	}
+
+	void set(sandPos s, bool val)
+	{
+		int temp = s.x * height * depth + s.y * depth + s.z;
+		int index = temp / 8;
+		int dif = temp - (index * 8);
+
+		if (val)
+			data.at(index) |= (1 << dif);
+		else
+			data.at(index) &= ~(1 << dif);
 	}
 
 	int size()
 	{
-		return data.size();
+		return width * height * depth;
 	}
 
 	void reset()
 	{
-		data.reset();
+		for (auto &t : data)
+			t = 0;
 	}
 };
 
