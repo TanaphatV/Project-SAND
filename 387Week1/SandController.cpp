@@ -4,7 +4,7 @@
 //TODO: REMOVE SAND THAT IS ON THE INSIDE SOMEHOW
 //===============================================
 
-SandController::SandController(int size, float boxScale, glm::mat4 center) : sandGrid(size,size,size)/*, fixedSandGrid(size/2,size/2,size/2)*/{
+SandController::SandController(int size, float boxScale, glm::mat4 center)/*, fixedSandGrid(size/2,size/2,size/2)*/{
 	this->size = size;
 	this->boxScale = glm::vec3(boxScale,boxScale,boxScale);
 	box = glm::translate(center, glm::vec3(-1, -1, -1));//start at bottom left
@@ -91,8 +91,8 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 
 	if (!sandGrid.at(sand.x,sand.y - (size_t)1, sand.z))//check bottom of sand
 	{
-		sandGrid.at(sand) = false;
-		sandGrid.at(sand.x, sand.y - (size_t)1, sand.z) = true;
+		sandGrid.set(sand, false);
+		sandGrid.set(sand.x, sand.y - (size_t)1, sand.z, true);
 		sand = sandPos(sand.x, sand.y - 1, sand.z);
 		return;
 	}
@@ -113,8 +113,8 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 
 			if (!sandGrid.at(nX, sand.y - (size_t)1, nZ))
 			{
-				sandGrid.at(nX, sand.y - (size_t)1, nZ) = true;
-				sandGrid.at(sand) = false;
+				sandGrid.set(nX, sand.y - (size_t)1, nZ,true);
+				sandGrid.set(sand, false);
 				sand = sandPos(nX, sand.y - (size_t)1, nZ);
 				return;
 			}
@@ -134,6 +134,6 @@ void SandController::AddSand(int x,int y, int z)
 	if (!sandGrid.at(x,y,z))
 	{
 		sandToUpdate.push_back(sandPos(x, y, z));
-		sandGrid.at(x, y, z) = true;
+		sandGrid.set(x, y, z,true);
 	}
 }

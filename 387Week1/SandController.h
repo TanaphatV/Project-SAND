@@ -2,29 +2,38 @@
 #include "BoxMesh.h"
 #include <vector>
 #include <bitset>
+#define WIDTH 100
+#define HEIGHT 100
+#define DEPTH 100
 
 typedef glm::vec<3,int,glm::packed_highp> sandPos;
 
 class Array3d
 {
 	size_t height, depth;
-	vector<char> data;// need to be char cuz bool can't be lvalue lmao
+	bitset<WIDTH * HEIGHT * DEPTH> data;// need to be char cuz bool can't be lvalue lmao
 
 public:
-	Array3d(size_t width, size_t height, size_t depth) :
-		height(height),
-		depth(depth),
-		data(width* height* depth)
-	{}
+	Array3d(){}
 
-	char& at(size_t x, size_t y, size_t z)
+	bool at(size_t x, size_t y, size_t z)
 	{
-		return data.at(x * height * depth + y * depth + z);
+		return data[x * height * depth + y * depth + z];
 	}
 
-	char& at(sandPos s)
+	bool at(sandPos s)
 	{
-		return data.at(s.x * height * depth + s.y * depth + s.z);
+		return data[s.x * height * depth + s.y * depth + s.z];
+	}
+
+	void set(sandPos s,bool val)
+	{
+		data[s.x * height * depth + s.y * depth + s.z] = val;
+	}
+
+	void set(size_t x, size_t y, size_t z, bool val)
+	{
+		data[x * height * depth + y * depth + z] = val;
 	}
 
 	int size()
@@ -34,8 +43,7 @@ public:
 
 	void reset()
 	{
-		for (auto &t : data)
-			t = false;
+		data.reset();
 	}
 };
 
