@@ -26,6 +26,7 @@ void SandController::UpdateSandPos()
 		sandMat.push_back(temp);
 		ComputeNextPos(s,i);
 	}
+
 }
 
 void SandController::DrawSand(const glm::mat4& mat, GLRenderer* renderer)
@@ -36,13 +37,13 @@ void SandController::DrawSand(const glm::mat4& mat, GLRenderer* renderer)
 
 void SandController::DrawAllSand(GLRenderer* renderer)
 {
-
+	fixedToExclude.clear();
 	for (int i = 0; i < fixedSand.size(); i++)
 	{
-		//if (ExcludeFromDraw(fixedSand.at(i).second, i))
-		//{
-		//	continue;
-		//}
+		if (ExcludeFromDraw(fixedSand.at(i).second, i))
+		{
+			continue;
+		}
 		DrawSand(fixedSand.at(i).first, renderer);
 	}
 
@@ -51,32 +52,41 @@ void SandController::DrawAllSand(GLRenderer* renderer)
 		DrawSand(sand, renderer);
 	}
 
+	for (const size_t& index : fixedToExclude)
+	{
+		fixedSand.at(index).second.x = -1;
+	}
 
+	for (auto it = fixedSand.begin(); it != fixedSand.end(); it++) {
+		if ((*it).second.x == -1) {
+			fixedSand.erase(it);
+		}
+	}
 }
 
-//bool SandController::ExcludeFromDraw(const sandPos sand, size_t index)
-//{
-//
-//	for (int xyz = 0; xyz < 3; xyz++)
-//	{
-//		for (int i = -1; i <= 1; i++)
-//		{
-//			int n = sand[xyz] + i;
-//			if (n >= size || n <= 0)
-//				return false;
-//
-//			switch (xyz) {
-//			case 0: if (!fixedSandGrid.at(sand.x + n, sand.y, sand.z)) return false;
-//			case 1: if (!fixedSandGrid.at(sand.x, sand.y + n, sand.z)) return false;
-//			case 2: if (!fixedSandGrid.at(sand.x, sand.y, sand.z + n)) return false;
-//			}
-//		}
-//		
-//	}
-//	
-//	fixedToExclude.push_back(index);
-//	return true;
-//}
+bool SandController::ExcludeFromDraw(const sandPos sand, size_t index)
+{
+	
+	for (int xyz = 0; xyz < 3; xyz++)
+	{
+		for (int i = -1; i <= 1; i++)
+		{
+			int n = sand[xyz] + i;
+			if (n >= size || n <= 0)
+				return false;
+
+			switch (xyz) {
+			case 0: if (!fixedSandGrid.at(n, sand.y, sand.z)) return false;
+			case 1: if (!fixedSandGrid.at(sand.x, n, sand.z)) return false;
+			case 2: if (!fixedSandGrid.at(sand.x, sand.y, n)) return false;
+			}
+		}
+		
+	}
+	
+	fixedToExclude.push_back(index);
+	return true;
+}
 
 void SandController::ComputeNextPos(sandPos& sand,size_t index)
 {
