@@ -1,19 +1,20 @@
 #include "SandController.h"
 
 //===============================================
-//TODO: REMOVE SAND THAT IS ON THE INSIDE SOMEHOW
+//TODO: REMOVE SAND THAT IS ON THE INSIDE SOMEHOW	INCREASE MARK BASED ON Y AND HOW MANY SAND LANDED ON TOP THEN ONLY CALCULATE TO NOT SHOW WHEN MARK REACHES CERTAIN NUMBER
 //===============================================
 
-SandController::SandController(int size, float boxScale, glm::mat4 center) : sandGrid(size,size,size) , fixedSandGrid(size, size, size) {
+SandController::SandController(int size, float boxScale, glm::mat4 center, GLRenderer* renderer) : sandGrid(size,size,size) /*, fixedSandGrid(size, size, size)*/ {
 	this->size = size;
 	this->boxScale = glm::vec3(boxScale,boxScale,boxScale);
+	this->renderer = renderer;
 	box = glm::translate(center, glm::vec3(-1, -1, -1));//start at bottom left
 }
 
 void SandController::Init()
 {
 	sandGrid.reset();
-	fixedSandGrid.reset();
+	//fixedSandGrid.reset();
 }
 
 void SandController::UpdateSandPos()
@@ -29,64 +30,61 @@ void SandController::UpdateSandPos()
 
 }
 
-void SandController::DrawSand(const glm::mat4& mat, GLRenderer* renderer)
+void SandController::DrawSand(const glm::mat4& mat)
 {
-	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec3(0.0f, 1.0f, 1.0f),
+	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f,0.5f),
 		renderer->getModelMatrixId(), glm::scale(mat, boxScale));
 }
 
-void SandController::DrawAllSand(GLRenderer* renderer)
+void SandController::DrawAllSand()
 {
-	fixedToExclude.clear();
 	for (int i = 0; i < fixedSand.size(); i++)
 	{
-		if (ExcludeFromDraw(fixedSand.at(i).second, i))
-		{
-			continue;
-		}
-		DrawSand(fixedSand.at(i).first, renderer);
+		DrawSand(fixedSand[i].mat);
 	}
 
 	for (const glm::mat4 &sand : sandMat)
 	{
-		DrawSand(sand, renderer);
-	}
-
-	for (const size_t& index : fixedToExclude)
-	{
-		fixedSand.at(index).second.x = -1;
-	}
-
-	for (auto it = fixedSand.begin(); it != fixedSand.end(); it++) {
-		if ((*it).second.x == -1) {
-			fixedSand.erase(it);
-		}
+		DrawSand(sand);
 	}
 }
 
-bool SandController::ExcludeFromDraw(const sandPos sand, size_t index)
+void SandController::DrawContainer()
 {
-	
-	for (int xyz = 0; xyz < 3; xyz++)
-	{
-		for (int i = -1; i <= 1; i++)
-		{
-			int n = sand[xyz] + i;
-			if (n >= size || n <= 0)
-				return false;
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(GL_FALSE);
 
-			switch (xyz) {
-			case 0: if (!fixedSandGrid.at(n, sand.y, sand.z)) return false;
-			case 1: if (!fixedSandGrid.at(sand.x, n, sand.z)) return false;
-			case 2: if (!fixedSandGrid.at(sand.x, sand.y, n)) return false;
-			}
-		}
-		
-	}
+	glm::mat4 mat = glm::translate(box, glm::vec3(1, 1, 1));
 	
-	fixedToExclude.push_back(index);
-	return true;
+	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.1,0.1,0.1,0.1),
+		renderer->getModelMatrixId(), glm::scale(mat, glm::vec3(1,1,1)));
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
+
+//bool SandController::ExcludeFromDraw(const sandPos sand, size_t index)
+//{
+//	unsigned char a = 0;
+//
+//	a |= fixedSandGrid.at(sand.x + 1, sand.y, sand.z);
+//	a |= (fixedSandGrid.at(sand.x - 1, sand.y, sand.z) << 1);
+//	a |= (fixedSandGrid.at(sand.x, sand.y + 1, sand.z) << 2);
+//	a |= (fixedSandGrid.at(sand.x, sand.y - 1, sand.z) << 3);
+//	a |= (fixedSandGrid.at(sand.x, sand.y, sand.z + 1) << 4);
+//	a |= (fixedSandGrid.at(sand.x, sand.y, sand.z - 1) << 5);
+//
+//	if ((a & 63) == 63)
+//	{
+//		fixedSandGrid.set(sand, false);
+//		fixedSand.erase(fixedSand.begin() + index);
+//		return true;
+//	}
+//
+//	
+//	return false;
+//}
 
 void SandController::ComputeNextPos(sandPos& sand,size_t index)
 {
@@ -94,8 +92,8 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 	{
 		glm::mat4 temp = glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale);
 		sandToUpdate.erase(sandToUpdate.begin() + index);
-		fixedSand.push_back(pair<glm::mat4,sandPos>(temp,sand));
-		//fixedSandGrid.at(sand) = true;
+		fixedSand.push_back(FixedSand(temp, sand));
+		//fixedSandGrid.set(sand, true);
 		return;
 	}
 
@@ -133,8 +131,15 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 
 	glm::mat4 temp = glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale);
 	sandToUpdate.erase(sandToUpdate.begin() + index);
-	fixedSand.push_back(pair<glm::mat4, sandPos>(temp, sand));
-	//fixedSandGrid.at(sand) = true;
+	fixedSand.push_back(FixedSand(temp, sand));
+
+	for (int i = 0; i < fixedSand.size(); i++) 
+	{
+		if (fixedSand[i].pos == sandPos(sand.x, sand.y - 1, sand.z)) {
+			fixedSand.erase(fixedSand.begin() + i);
+			break;
+		}
+	}
 }
 
 void SandController::AddSand(int x,int y, int z)
@@ -145,5 +150,6 @@ void SandController::AddSand(int x,int y, int z)
 	{
 		sandToUpdate.push_back(sandPos(x, y, z));
 		sandGrid.set(x, y, z,true);
+		sandCount+= 1;
 	}
 }

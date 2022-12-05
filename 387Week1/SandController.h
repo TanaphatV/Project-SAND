@@ -4,7 +4,7 @@
 
 typedef glm::vec<3,int,glm::packed_highp> sandPos;
 
-class Array3d
+class Array3d// packed bits into unsigned char, thus containing 8 booleans in 1 element
 {
 	size_t width, height, depth;
 	vector<unsigned char> data;// need to be char cuz bool can't be lvalue lmao
@@ -19,6 +19,11 @@ public:
 
 	bool at(size_t x, size_t y, size_t z)
 	{
+		if (x >= width || y >= height || z >= depth)
+			return false;
+		else if (x < 0 || y < 0 | z < 0)
+			return false;
+
 		int temp = x * height * depth + y * depth + z;
 		int index = temp / 8;
 		int dif = temp - (index * 8);
@@ -27,6 +32,11 @@ public:
 
 	bool at(sandPos s)
 	{
+		if (s.x >= width || s.y >= height || s.z >= depth)
+			return false;
+		else if (s.x < 0 || s.y < 0 | s.z < 0)
+			return false;
+
 		int temp = s.x * height * depth + s.y * depth + s.z;
 		int index = temp / 8;
 		int dif = temp - (index * 8);
@@ -36,6 +46,10 @@ public:
 
 	void set(size_t x, size_t y, size_t z, bool val)
 	{
+		if (x >= width || y >= height || z >= depth)
+			return;
+		else if (x < 0 || y < 0 | z < 0)
+			return;
 		int temp = x * height * depth + y * depth + z;
 		int index = temp / 8;
 		int dif = temp - (index * 8);
@@ -48,6 +62,11 @@ public:
 
 	void set(sandPos s, bool val)
 	{
+		if (s.x >= width || s.y >= height || s.z >= depth)
+			return;
+		else if (s.x < 0 || s.y < 0 | s.z < 0)
+			return;
+
 		int temp = s.x * height * depth + s.y * depth + s.z;
 		int index = temp / 8;
 		int dif = temp - (index * 8);
@@ -70,26 +89,45 @@ public:
 	}
 };
 
+struct FixedSand{
+	FixedSand(glm::mat4 m, sandPos s)
+	{
+		mat = m;
+		pos = s;
+	}
+	glm::mat4 mat;
+	sandPos pos;
+	short mark = 0;
+	bool operator==(FixedSand b)
+	{
+		return pos == b.pos;
+	}
+};
+
 class SandController
 {
 	private:
-		glm::mat4 box;
 
+		glm::mat4 box;
+		GLRenderer* renderer;
 		int size;
 		Array3d sandGrid;
-		Array3d fixedSandGrid;
+		//Array3d fixedSandGrid;
 		vector<glm::mat4> sandMat;//unfixed sand that are still moving
-		vector<pair<glm::mat4, sandPos>> fixedSand;//fixed sand store still sands
+		vector<FixedSand> fixedSand;//fixed sand store still sands
 		vector<sandPos> sandToUpdate;//used to help excluding sands that doesnt need updating
 		vector<size_t> fixedToExclude;
 		glm::vec3 boxScale;
 		void ComputeNextPos(sandPos& sand, size_t index);
 		bool ExcludeFromDraw(const sandPos sand, size_t index);
+		void UpdateNeighbour(const sandPos sand);
 	public:
-		SandController(int size, float boxScale, glm::mat4 center);
+		unsigned long long sandCount = 0;
+		SandController(int size, float boxScale, glm::mat4 center, GLRenderer* renderer);
+		void DrawContainer();
 		void UpdateSandPos();
-		void DrawSand(const glm::mat4& mat, GLRenderer* renderer);
-		void DrawAllSand(GLRenderer* renderer);
+		void DrawSand(const glm::mat4& mat);
+		void DrawAllSand();
 		void AddSand(int x, int y, int z);
 		void Init();
 	//2D - 3D array of bool,

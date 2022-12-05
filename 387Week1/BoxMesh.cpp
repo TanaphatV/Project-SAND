@@ -6,9 +6,9 @@ using namespace std;
 
 BoxMesh* BoxMesh::instance = nullptr;
 
-void BoxMesh::draw(GLuint colorId, glm::vec3 color, GLuint matrixId, glm::mat4 transform)
+void BoxMesh::draw(GLuint colorId, glm::vec4 color, GLuint matrixId, glm::mat4 transform)
 {
-    glUniform3f(colorId, color.r, color.g, color.b);
+    glUniform4f(colorId, color.r, color.g, color.b,color.a);
     glUniformMatrix4fv(matrixId, 1, GL_FALSE, glm::value_ptr(transform));
     glBindVertexArray(vaoId);
     glDrawArrays(GL_TRIANGLES, 0, 36);

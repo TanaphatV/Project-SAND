@@ -91,8 +91,9 @@ int main(int argc, char* argv[])
     float angleX = 0;
     float boxScale = 0.01;
     int sandBoxSize = 200;
-    glm::mat4 space = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-    SandController sandController(sandBoxSize,boxScale,space);
+    float temp = sandBoxSize / 2.0f * boxScale;
+    glm::mat4 space = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5.0f));
+    SandController sandController(sandBoxSize,boxScale,space, renderer);
     sandController.Init();
 
     int fps = 0;
@@ -146,33 +147,32 @@ int main(int argc, char* argv[])
         renderer->beginRender();
         renderer->setPerspectiveProjection(glm::radians(45.0f), 800.f, 800.f, 1.f, 100.f);
 
-     
         space = glm::rotate(space, glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f));
         space = glm::rotate(space, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
 
-        sandController.DrawAllSand(renderer);
         if (timer >= SimulateFrequency)
         {
+            sandController.DrawAllSand();
             sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2);
             sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2 + 1);
             sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + 1);
             sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
             sandController.UpdateSandPos();
+            sandController.DrawContainer();
             timer = 0;
+            SDL_GL_SwapWindow(window);
         }
 
         fps++;
         fpsTimer += deltaTimeS;
         if (fpsTimer >= 1)
         {
-            cout << "FPS: " << fps << endl;
+            cout << "FPS: " << fps << " Time: " << time << " SandCount: " << sandController.sandCount << endl;
             fps = 0;
             fpsTimer = 0;
         }
 
         renderer->endRender();
-
-        SDL_GL_SwapWindow(window);
     }
 
     //Destroy window

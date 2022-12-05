@@ -3,7 +3,7 @@
 uniform mat4 pMatrix = mat4(1.0); 
 uniform mat4 mMatrix = mat4(1.0); 
 uniform mat4 cMatrix = mat4(1.0);
-uniform vec3 uColor = vec3(1.0f, 1.0f, 0.0f);
+uniform vec4 uColor = vec4(1.0f, 1.0f, 0.0f,1.0f);
 
 in vec3 vertexPos;
 
@@ -13,7 +13,7 @@ in vec3 vertexNormal;
 out vec3 vNormal;
 out vec3 vLight;
 
-out vec3 color; 
+out vec4 color; 
 
 void main() { 
 

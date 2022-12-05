@@ -1,0 +1,22 @@
+COMPLETED	Buffer swap	
+COMPLETED	Bit packing			
+Lookup table (LUT)
+Single buffer
+Greedy reading
+Gigantic lookup table (GLUT)
+Sparse matrix techniques
+Only redraw changed regions
+Update as you go along
+Don't redraw too fast
+Adaptive runtime optimisation
+Avoid unnecessary boundary checks
+Run directly in the display buffer
+Avoid simple boundary implementations
+Take advantage of the hardware
+
+PERFORMANCE TEST: ADD 4 SAND AT THE TOP CENTER, SimulateFrequency = 0.0001f
+fps reduced to 48 within: 
+Time: 56000 without exclude from draw
+Time: 39000 with exclude from draw LMFAO
+Time: 46000 with exclude from draw ver.2 LMFAO
+Time:107000 by removing sand below when current sand stopped moving
