@@ -122,13 +122,15 @@ class SandController
 		bool ExcludeFromDraw(const sandPos sand, size_t index);
 		void UpdateNeighbour(const sandPos sand);
 	public:
+		sandPos dropPoint;
 		unsigned long long sandCount = 0;
 		SandController(int size, float boxScale, glm::mat4 center, GLRenderer* renderer);
-		void DrawContainer();
+		void DrawAll();
 		void UpdateSandPos();
 		void DrawSand(const glm::mat4& mat);
 		void DrawAllSand();
 		void AddSand(int x, int y, int z);
+		void AddSand(sandPos s);
 		void Init();
 	//2D - 3D array of bool,
 

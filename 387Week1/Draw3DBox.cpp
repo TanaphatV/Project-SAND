@@ -87,12 +87,13 @@ int main(int argc, char* argv[])
         }
     }
 
-    float angleY = 0;
-    float angleX = 0;
+    float angleH = 90;
+    float angleV = 0;
+    float radius = 5;
     float boxScale = 0.01;
     int sandBoxSize = 200;
     float temp = sandBoxSize / 2.0f * boxScale;
-    glm::mat4 space = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5.0f));
+    glm::mat4 space = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0.0f));
     SandController sandController(sandBoxSize,boxScale,space, renderer);
     sandController.Init();
 
@@ -102,12 +103,51 @@ int main(int argc, char* argv[])
 
     long lastFrameTime = 0;
     long deltaTime = 0;
-    float deltaTimeS;
-    float timer = 0;
-    float SimulateFrequency = 0.0001f;
+    double deltaTimeS;
+    double timer = 0;
+    double SimulateFrequency = 0.0002f;
+    sandController.dropPoint = sandPos(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
+    sandPos& dropPoint = sandController.dropPoint;
+
+    float fixedTimer = 0;
     // Game loop
     while (!quit)
     {
+        long time = SDL_GetTicks();
+        deltaTime = time - lastFrameTime;
+        deltaTimeS = deltaTime / 1000.0f;
+        lastFrameTime = time;
+
+        const Uint8* keystate = SDL_GetKeyboardState(NULL);
+        if (fixedTimer >= 1.0f / 60.0f)//update keyboard limited to 60 second
+        {
+            if (keystate[SDL_SCANCODE_W])
+            {
+                if (dropPoint.z > 0)
+                    dropPoint.z -= 1;
+            }
+            if (keystate[SDL_SCANCODE_S])
+            {
+                if (dropPoint.z < sandBoxSize - 1)
+                    dropPoint.z += 1;
+            }
+            if (keystate[SDL_SCANCODE_A])
+            {
+                if (dropPoint.x > 0)
+                    dropPoint.x -= 1;
+            }
+            if (keystate[SDL_SCANCODE_D])
+            {
+                if (dropPoint.x < sandBoxSize - 1)
+                    dropPoint.x += 1;
+            }
+            if (keystate[SDL_SCANCODE_SPACE])
+            {
+                sandController.AddSand(dropPoint);
+            }
+        }
+        fixedTimer += deltaTimeS;
+
         while (SDL_PollEvent(&sdlEvent) != 0)
         {
             // Esc button is pressed
@@ -117,54 +157,70 @@ int main(int argc, char* argv[])
             }if (sdlEvent.type == SDL_KEYDOWN) {
                 switch (sdlEvent.key.keysym.sym) {
                 case SDLK_LEFT:
-                    angleY -= 2;
+                    angleH -= 2;
                     break;
                 case SDLK_RIGHT:
-                    angleY += 2;
+                    angleH += 2;
                     break;
                 case SDLK_UP:
-                    angleX -= 2;
+                    if (angleV < 88)
+                        angleV += 2;
+                    else
+                        angleV = 88;
                     break;
                 case SDLK_DOWN:
-                    angleX += 2;
+                    if (angleV > -90)
+                        angleV -= 2;
+                    else
+                        angleV = -90;
                     break;
-                case SDLK_SPACE:
-                    sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2);
-                    sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2 + 1);
-                    sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + 1);
-                    sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
+                case SDLK_EQUALS:
+                    radius -= 0.5f;
+                    break;
+                case SDLK_MINUS:
+                    radius += 0.5f;
+                    break;
                 }
             }
         }
-        
-        long time = SDL_GetTicks();
-        deltaTime = time - lastFrameTime;
-        deltaTimeS = deltaTime / 1000.0f;
-        lastFrameTime = time;
-
-        timer += deltaTimeS;
+       
         renderer->setClearColor(1.0f, 1.0f, 1.0f);
         renderer->beginRender();
         renderer->setPerspectiveProjection(glm::radians(45.0f), 800.f, 800.f, 1.f, 100.f);
 
-        space = glm::rotate(space, glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f));
-        space = glm::rotate(space, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
+        if (angleH > 360)
+            angleH = 0;
+        if (angleH < 0)
+            angleH = 360;
+
+
+
+        float x = radius * cos(glm::radians(angleV)) * cos(glm::radians(angleH));
+        float z = radius * cos(glm::radians(angleV)) * sin(glm::radians(angleH));
+        float y = radius * sin(glm::radians(angleV));
+
+        renderer->setCamera(glm::vec3(x,y,z),glm::vec3(0,0,0),glm::vec3(0,1,0));
+
+        //space = glm::rotate(space, glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f));
+        //space = glm::rotate(space, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
 
         if (timer >= SimulateFrequency)
         {
-            sandController.DrawAllSand();
-            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2);
-            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2 + 1);
-            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + 1);
-            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
+            sandController.DrawAll();
+            //float temp = (timer - SimulateFrequency) / SimulateFrequency;
             sandController.UpdateSandPos();
-            sandController.DrawContainer();
+            //if (temp > 2.0f)
+            //{
+            //    for(int i = 1; i < (int)temp; i++)
+            //        sandController.UpdateSandPos();
+            //}
             timer = 0;
             SDL_GL_SwapWindow(window);
         }
 
         fps++;
         fpsTimer += deltaTimeS;
+        timer += deltaTimeS;
         if (fpsTimer >= 1)
         {
             cout << "FPS: " << fps << " Time: " << time << " SandCount: " << sandController.sandCount << endl;
