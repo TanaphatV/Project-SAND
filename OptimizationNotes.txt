@@ -8,7 +8,6 @@ Sparse matrix techniques
 Only redraw changed regions
 Update as you go along
 Don't redraw too fast
-Adaptive runtime optimisation
 Avoid unnecessary boundary checks
 Run directly in the display buffer
 Avoid simple boundary implementations

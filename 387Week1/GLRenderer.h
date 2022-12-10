@@ -28,7 +28,6 @@ protected:
   GLuint colorUniformId = -1;
   int trianglePos = 0;
 
-  GLuint gProgramId =-1;
   GLuint vertexAttrLocation =-1;
   GLuint normalAttrLocation = -1;
 
@@ -43,7 +42,7 @@ public:
   GLRenderer(int w,int h);
   bool initGL(string vertexShaderFile, string fragmentShaderFile);
 
-
+  GLuint gProgramId = -1;
   ~GLRenderer();
 
   void beginRender();

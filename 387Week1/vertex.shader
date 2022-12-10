@@ -13,16 +13,25 @@ in vec3 vertexNormal;
 out vec3 vNormal;
 out vec3 vLight;
 
-out vec4 color; 
+out vec4 color;
+
+uniform int mode = 0;
+uniform mat4 instanceMatrix[500];
 
 void main() { 
 
 	vec4 vPosition = cMatrix * mMatrix * vec4(vertexPos.xyz, 1.0);
+
+	if(mode == 1)
+		vPosition = cMatrix * instanceMatrix[gl_InstanceID] * vec4(vertexPos.xyz, 1.0);
+
 	gl_Position = pMatrix * vPosition;
 	
+	
+
+
 	//find normal in view space
 	vNormal = mat3(cMatrix * mMatrix) * vertexNormal;
-
 	//find view-space light vector
 	vLight = lightPos - vPosition.xyz;
 	

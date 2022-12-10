@@ -13,6 +13,17 @@ void BoxMesh::draw(GLuint colorId, glm::vec4 color, GLuint matrixId, glm::mat4 t
     glBindVertexArray(vaoId);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
+
+void BoxMesh::drawInstance(GLRenderer* renderer, glm::vec4 color, vector<glm::mat4> &m, int amount)
+{
+    glUniform1i(glGetUniformLocation(renderer->gProgramId, "mode"),1);
+    glUniformMatrix4fv(glGetUniformLocation(renderer->gProgramId, "instanceMatrix"), amount,GL_FALSE, (GLfloat*)m.data());
+    glUniform4f(renderer->getColorUniformId(), color.r, color.g, color.b, color.a);
+    glBindVertexArray(vaoId);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, amount);
+    glUniform1i(glGetUniformLocation(renderer->gProgramId, "mode"), 0);
+}
+
 glm::vec3 BoxMesh::getNormal(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
 {
     glm::vec3 a = v2 - v1;
@@ -91,6 +102,7 @@ void BoxMesh::loadData(GLRenderer* renderer)
     glBufferData(GL_ARRAY_BUFFER, normalData.size() * sizeof(GLfloat), normalData.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(renderer->getVertexNormalAttributeID());
     glVertexAttribPointer(renderer->getVertexNormalAttributeID(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
+
     
 }
 

@@ -107,7 +107,6 @@ struct FixedSand{
 class SandController
 {
 	private:
-
 		glm::mat4 box;
 		GLRenderer* renderer;
 		int size;
@@ -117,6 +116,7 @@ class SandController
 		vector<FixedSand> fixedSand;//fixed sand store still sands
 		vector<sandPos> sandToUpdate;//used to help excluding sands that doesnt need updating
 		vector<size_t> fixedToExclude;
+		vector<glm::mat4> modelMatrices;
 		glm::vec3 boxScale;
 		void ComputeNextPos(sandPos& sand, size_t index);
 		bool ExcludeFromDraw(const sandPos sand, size_t index);
