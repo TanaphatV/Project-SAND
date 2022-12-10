@@ -19,4 +19,4 @@ fps reduced to 48 within:
 Time: 56000 without exclude from draw
 Time: 39000 with exclude from draw LMFAO
 Time: 46000 with exclude from draw ver.2 LMFAO
-Time:107000 by removing sand below when current sand stopped moving (32000 sand)**USE THIS FOR FUTHER TEST**
+Time:107000 by removing sand below when current sand stopped moving

@@ -90,12 +90,12 @@ public:
 };
 
 struct FixedSand{
-	FixedSand(glm::vec3 m, sandPos s)
+	FixedSand(glm::mat4 m, sandPos s)
 	{
-		trans = m;
+		mat = m;
 		pos = s;
 	}
-	glm::vec3 trans;
+	glm::mat4 mat;
 	sandPos pos;
 	short mark = 0;
 	bool operator==(FixedSand b)

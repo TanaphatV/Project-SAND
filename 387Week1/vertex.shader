@@ -21,10 +21,10 @@ void main() {
 	gl_Position = pMatrix * vPosition;
 	
 	//find normal in view space
-	vNormal = normalize(mat3(cMatrix * mMatrix) * vertexNormal);
+	vNormal = mat3(cMatrix * mMatrix) * vertexNormal;
 
 	//find view-space light vector
-	vLight = normalize(lightPos - vPosition.xyz);
+	vLight = lightPos - vPosition.xyz;
 	
 	color = uColor;
 }
