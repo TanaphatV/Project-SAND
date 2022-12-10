@@ -206,14 +206,12 @@ int main(int argc, char* argv[])
 
         if (timer >= SimulateFrequency)
         {
+            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2);
+            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2 + 1);
+            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + 1);
+            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
             sandController.DrawAll();
-            //float temp = (timer - SimulateFrequency) / SimulateFrequency;
             sandController.UpdateSandPos();
-            //if (temp > 2.0f)
-            //{
-            //    for(int i = 1; i < (int)temp; i++)
-            //        sandController.UpdateSandPos();
-            //}
             timer = 0;
             SDL_GL_SwapWindow(window);
         }

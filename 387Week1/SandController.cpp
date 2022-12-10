@@ -40,7 +40,8 @@ void SandController::DrawAllSand()
 {
 	for (int i = 0; i < fixedSand.size(); i++)
 	{
-		DrawSand(fixedSand[i].mat);
+		glm::mat4 d = translate(box, fixedSand[i].trans);
+		DrawSand(d);
 	}
 
 	for (const glm::mat4 &sand : sandMat)
@@ -98,7 +99,7 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 {
 	if (sand.y == 0)
 	{
-		glm::mat4 temp = glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale);
+		glm::vec3 temp = glm::vec3(sand.x, sand.y, sand.z) * boxScale;
 		sandToUpdate.erase(sandToUpdate.begin() + index);
 		fixedSand.push_back(FixedSand(temp, sand));
 		//fixedSandGrid.set(sand, true);
@@ -137,7 +138,7 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 		}
 	}
 
-	glm::mat4 temp = glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale);
+	glm::vec3 temp = glm::vec3(sand.x, sand.y, sand.z) * boxScale;
 	sandToUpdate.erase(sandToUpdate.begin() + index);
 	fixedSand.push_back(FixedSand(temp, sand));
 
