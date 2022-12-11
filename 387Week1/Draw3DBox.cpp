@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
                 sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 - i);
                 sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
             }
-
+         
             sandController.DrawAll();
             sandController.UpdateSandPos();
             timer = 0;

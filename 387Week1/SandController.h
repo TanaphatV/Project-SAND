@@ -2,7 +2,29 @@
 #include "BoxMesh.h"
 #include <vector>
 
-typedef glm::vec<3,int,glm::packed_highp> sandPos;
+//typedef glm::vec<3,int,glm::packed_highp> sandPos;
+
+struct sandPos {
+	int x;
+	int y;
+	int z;
+	sandPos() {
+		x = 0;
+		y = 0;
+		z = 0;
+
+	}
+	sandPos(int X, int Y, int Z)
+	{
+		x = X;
+		y = Y;
+		z = Z;
+	}
+
+	bool operator==(sandPos s) {
+		return (x == s.x) && (y == s.y) && (z == s.z);
+	}
+};
 
 class Array3d// packed bits into unsigned char, thus containing 8 booleans in 1 element
 {
@@ -108,6 +130,7 @@ struct FixedSand{
 class SandController
 {
 	private:
+		unsigned long long erased = 0;
 		glm::vec4 SAND_COLOR;
 		glm::mat4 box;
 		GLRenderer* renderer;
@@ -121,6 +144,7 @@ class SandController
 		//vector<glm::mat4> modelMatrices;
 		glm::vec3 boxScale;
 		bool ComputeNextPos(sandPos& sand, size_t index);
+		void UpdateFixedSand();
 		/*bool ExcludeFromDraw(const sandPos sand, size_t index);
 		void UpdateNeighbour(const sandPos sand);*/
 	public:

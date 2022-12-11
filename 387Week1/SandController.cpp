@@ -32,16 +32,17 @@ void SandController::UpdateSandPos()
 {
 	sandMat.clear();
 	int upSize = sandToUpdate.size();
-	for (int i = 0; i < upSize;i++)
+	int i = 0;
+	for (i; i < upSize;i++)
 	{
 		sandPos& s = sandToUpdate.at(i);
-		glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(s.x,s.y,s.z) * boxScale),boxScale);
+		glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(s.x, s.y, s.z) * boxScale), boxScale);
 		sandMat.push_back(temp);
-
 		if (ComputeNextPos(s, i))
 		{
 			i--;
 			upSize--;
+			UpdateFixedSand();
 		}
 	}
 
@@ -69,35 +70,6 @@ void SandController::DrawAllSand()//TODO: BATCH THE NON FIXED SANDS TOO
 	vector<glm::mat4> temp(it + (BATCH_SIZE * sections), fixedSandMat.end());
 	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, fixedSandMat.size() - (BATCH_SIZE * sections));
 
-	//for (int i =  (BATCH_SIZE * sections); i < fixedSandMat.size(); i++)
-	//{
-	//	DrawSand(fixedSandMat.at(i));
-	//}
-
-	//int count = 0;
-	//int nonBatchCount = 0;
-	//for (int i = 0; i < fixedSandMat.size(); i++)
-	//{
-	//	modelMatrices.push_back(fixedSandMat.at(i));
-	//	if ((fixedSandMat.size() - (count * BATCH_SIZE)) >= BATCH_SIZE)
-	//	{
-	//		if (modelMatrices.size() == BATCH_SIZE)
-	//		{
-	//			count++;
-	//			BoxMesh::getInstance()->drawInstance(renderer, glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f),modelMatrices, BATCH_SIZE);
-	//			modelMatrices.clear();
-	//		}
-	//	}
-	//	else
-	//		BoxMesh::getInstance()->drawInstance(renderer, glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f), modelMatrices, nonBatchCount);
-	//		DrawSand(fixedSandMat.at(i));
-	//}
-//	cout << "ActiveSands: " << fixedSandMat.size() << " Batches: " << count << endl;
-
-	//for (const glm::mat4 &sand : sandMat)
-	//{
-	//	DrawSand(sand);
-	//}
 
 	int sections2 = sandMat.size() / BATCH_SIZE;
 	vector<glm::mat4>::iterator it2 = sandMat.begin();
@@ -117,12 +89,13 @@ void SandController::DrawAllSand()//TODO: BATCH THE NON FIXED SANDS TOO
 
 void SandController::DrawAll()
 {
+//	cout << dropPoint.y << endl;
 	DrawAllSand();
 	glm::mat4 mat = glm::translate(box, glm::vec3(1, 1, 1));
 	glm::vec3 scale = boxScale * (float)size;
 
-	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.7, 0.7, 0.7, 1),
-		renderer->getModelMatrixId(), glm::scale(glm::translate(mat,glm::vec3(0,-1 - boxScale.y,0)), glm::vec3(scale.x,boxScale.y,scale.z)));//CONTAINER BASE
+	//BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.7, 0.7, 0.7, 1),
+	//	renderer->getModelMatrixId(), glm::scale(glm::translate(mat,glm::vec3(0,-1 - boxScale.y,0)), glm::vec3(scale.x,boxScale.y,scale.z)));//CONTAINER BASE
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);
@@ -165,18 +138,18 @@ bool SandController::ComputeNextPos(sandPos& sand,size_t index)
 	if (sand.y == 0)
 	{
 		glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale), boxScale);
-		sandToUpdate.erase(sandToUpdate.begin() + index);
 		fixedSandMat.push_back(temp);
 		fixedSandPos.push_back(sand);
+		sandToUpdate.erase(sandToUpdate.begin() + index);
 		//fixedSandGrid.set(sand, true);
 		return true;
 	}
 
-	if (!sandGrid.at(sand.x,sand.y - (size_t)1, sand.z))//check bottom of sand
+	if (!sandGrid.at(sand.x,sand.y - (int)1, sand.z))//check bottom of sand
 	{
 		sandGrid.set(sand, false);
-		sandGrid.set(sand.x, sand.y - (size_t)1, sand.z, true);
-		sand = sandPos(sand.x, sand.y - 1, sand.z);
+		sandGrid.set(sand.x, sand.y - (int)1, sand.z, true);
+		sand = sandPos(sand.x, sand.y - (int)1, sand.z);
 		return false;
 	}
 
@@ -194,30 +167,55 @@ bool SandController::ComputeNextPos(sandPos& sand,size_t index)
 			if (nZ < 0 || nZ >= size)
 				continue;
 
-			if (!sandGrid.at(nX, sand.y - (size_t)1, nZ))
+			if (!sandGrid.at(nX, sand.y - (int)1, nZ))
 			{
-				sandGrid.set(nX, sand.y - (size_t)1, nZ,true);
+				sandGrid.set(nX, sand.y - (int)1, nZ,true);
 				sandGrid.set(sand, false);
-				sand = sandPos(nX, sand.y - (size_t)1, nZ);
+				sand = sandPos(nX, sand.y - (int)1, nZ);
 				return false;
 			}
 		}
 	}
 
+
 	glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale),boxScale);
-	sandToUpdate.erase(sandToUpdate.begin() + index);
 	fixedSandMat.push_back(temp);
 	fixedSandPos.push_back(sand);
+	sandToUpdate.erase(sandToUpdate.begin() + index);
 
-	for (int i = 0; i < fixedSandPos.size(); i++) 
+	return true;
+}
+
+void SandController::UpdateFixedSand()
+{
+	if (fixedSandPos.size() == 0)
+		return;
+
+	sandPos& sand = fixedSandPos.back();
+	if (sand.y == 0)
+		return;
+	if (sand.x == 0 || sand.x == size - 1 || sand.z == 0 || sand.z == size - 1)
+		return;
+
+	int toErase = -1;
+	for (int i = 0; i < fixedSandPos.size(); i++)
 	{
-		if (fixedSandPos[i].y == sand.y - 1) {
-			fixedSandMat.erase(fixedSandMat.begin() + i);
-			fixedSandPos.erase(fixedSandPos.begin() + i);
+		if ((fixedSandPos[i].y == (sand.y - 1)) /*&& fixedSandPos[i].x == sand.x && fixedSandPos[i].z == sand.z*/) {
+			if (fixedSandPos[i].x != sand.x)
+				continue;
+			if (fixedSandPos[i].z != sand.z)
+				continue;
+			toErase = i;
+			erased++;
+
 			break;
 		}
 	}
-	return true;
+	if (toErase != -1)
+	{
+		fixedSandMat.erase(fixedSandMat.begin() + toErase);
+		fixedSandPos.erase(fixedSandPos.begin() + toErase);
+	}
 }
 
 void SandController::AddSand(int x,int y, int z)
