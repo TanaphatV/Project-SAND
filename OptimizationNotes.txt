@@ -19,3 +19,19 @@ Time: 56000 without exclude from draw
 Time: 39000 with exclude from draw LMFAO
 Time: 46000 with exclude from draw ver.2 LMFAO
 Time:107000 by removing sand below when current sand stopped moving
+
+1000 per batches
+METHOD1 all batches : lower fps, but decreases slower
+METHOD2 mixed : higher fps but decreases faster
+
+100 per batch
+seems to sustain high fps for longer a
+METHOD2
+Batches 10: FPS: 38 Time: 23524 SandCount: 40627 | FPS: 20 Time: 71143 SandCount: 80583
+Batches 50: FPS: 40 Time: 22174 SandCount: 41959 |FPS: 24 Time: 65842 SandCount: 83879 SWEET SPOT?
+50 but also
+  batch sandMat: FPS: 46 Time: 19112 SandCount: 40711 | FPS: 27 Time: 59798 SandCount: 82919 
+batch sand
+ + uniform less: 
+Batches 100:FPS: 38 Time: 23232 SandCount: 40359 | FPS: 23 Time: 70877 SandCount: 83623
+Barches 1000: FPS: 17 Time: 123944 SandCount: 82695

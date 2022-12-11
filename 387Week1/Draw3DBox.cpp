@@ -206,10 +206,19 @@ int main(int argc, char* argv[])
 
         if (timer >= SimulateFrequency)
         {
-            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2);
-            sandController.AddSand(sandBoxSize / 2 + 1, sandBoxSize - 1, sandBoxSize / 2 + 1);
-            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + 1);
-            sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
+            for (int i = 1; i < 5; i++)
+            {
+                sandController.AddSand(sandBoxSize / 2 + i, sandBoxSize - 1, sandBoxSize / 2);
+                sandController.AddSand(sandBoxSize / 2 - i, sandBoxSize - 1, sandBoxSize / 2);
+                sandController.AddSand(sandBoxSize / 2 + i, sandBoxSize - 1, sandBoxSize / 2 + i);
+                sandController.AddSand(sandBoxSize / 2 - i, sandBoxSize - 1, sandBoxSize / 2 - i);
+                sandController.AddSand(sandBoxSize / 2 + i, sandBoxSize - 1, sandBoxSize / 2 - i);
+                sandController.AddSand(sandBoxSize / 2 - i, sandBoxSize - 1, sandBoxSize / 2 +i);
+                sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + i);
+                sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 - i);
+                sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
+            }
+
             sandController.DrawAll();
             sandController.UpdateSandPos();
             timer = 0;

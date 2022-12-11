@@ -104,23 +104,25 @@ struct FixedSand{
 	}
 };
 
+
 class SandController
 {
 	private:
+		glm::vec4 SAND_COLOR;
 		glm::mat4 box;
 		GLRenderer* renderer;
 		int size;
 		Array3d sandGrid;
 		//Array3d fixedSandGrid;
 		vector<glm::mat4> sandMat;//unfixed sand that are still moving
-		vector<FixedSand> fixedSand;//fixed sand store still sands
+		vector<glm::mat4> fixedSandMat;//fixed sand store still sands
+		vector<sandPos> fixedSandPos;
 		vector<sandPos> sandToUpdate;//used to help excluding sands that doesnt need updating
-		vector<size_t> fixedToExclude;
-		vector<glm::mat4> modelMatrices;
+		//vector<glm::mat4> modelMatrices;
 		glm::vec3 boxScale;
-		void ComputeNextPos(sandPos& sand, size_t index);
-		bool ExcludeFromDraw(const sandPos sand, size_t index);
-		void UpdateNeighbour(const sandPos sand);
+		bool ComputeNextPos(sandPos& sand, size_t index);
+		/*bool ExcludeFromDraw(const sandPos sand, size_t index);
+		void UpdateNeighbour(const sandPos sand);*/
 	public:
 		sandPos dropPoint;
 		unsigned long long sandCount = 0;
@@ -132,6 +134,7 @@ class SandController
 		void AddSand(int x, int y, int z);
 		void AddSand(sandPos s);
 		void Init();
+		void Reset();
 	//2D - 3D array of bool,
 
 };

@@ -16,17 +16,18 @@ out vec3 vLight;
 out vec4 color;
 
 uniform int mode = 0;
-uniform mat4 instanceMatrix[500];
+uniform mat4 instanceMatrix[50];
 
 void main() { 
 
-	vec4 vPosition = cMatrix * mMatrix * vec4(vertexPos.xyz, 1.0);
+	vec4 vPosition;
 
 	if(mode == 1)
 		vPosition = cMatrix * instanceMatrix[gl_InstanceID] * vec4(vertexPos.xyz, 1.0);
-
+	else
+		vPosition = cMatrix * mMatrix * vec4(vertexPos.xyz, 1.0);
 	gl_Position = pMatrix * vPosition;
-	
+		
 	
 
 

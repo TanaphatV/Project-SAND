@@ -9,6 +9,7 @@ SandController::SandController(int size, float boxScale, glm::mat4 center, GLRen
 	this->boxScale = glm::vec3(boxScale,boxScale,boxScale);
 	this->renderer = renderer;
 	box = glm::translate(center, glm::vec3(-1, -1, -1));//start at bottom left
+	SAND_COLOR = glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f);
 }
 
 void SandController::Init()
@@ -17,52 +18,98 @@ void SandController::Init()
 	//fixedSandGrid.reset();
 }
 
+void SandController::Reset()
+{
+	sandGrid.reset();
+	sandMat.clear();
+	fixedSandMat.clear();
+	fixedSandPos.clear();
+	sandToUpdate.clear();
+	sandCount = 0;
+}
+
 void SandController::UpdateSandPos()
 {
 	sandMat.clear();
-	for (int i = 0; i < sandToUpdate.size();i++)
+	int upSize = sandToUpdate.size();
+	for (int i = 0; i < upSize;i++)
 	{
 		sandPos& s = sandToUpdate.at(i);
 		glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(s.x,s.y,s.z) * boxScale),boxScale);
 		sandMat.push_back(temp);
-		ComputeNextPos(s,i);
+
+		if (ComputeNextPos(s, i))
+		{
+			i--;
+			upSize--;
+		}
 	}
 
 }
 
 void SandController::DrawSand(const glm::mat4& mat)
 {
-	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f,0.5f),
+	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), SAND_COLOR,
 		renderer->getModelMatrixId(), mat);
 }
 
-#define BATCH_SIZE 500
-void SandController::DrawAllSand()
+#define BATCH_SIZE 50
+void SandController::DrawAllSand()//TODO: BATCH THE NON FIXED SANDS TOO
 {
-	modelMatrices.clear();
-	int count = 0;
-	for (int i = 0; i < fixedSand.size(); i++)
+	//modelMatrices.clear();
+	int sections = fixedSandMat.size() / BATCH_SIZE;
+	vector<glm::mat4>::iterator it = fixedSandMat.begin();
+	for (int i = 0; i < sections; i++)
 	{
-		modelMatrices.push_back(fixedSand.at(i).mat);
-		if ((fixedSand.size() - (count * BATCH_SIZE)) >= BATCH_SIZE)
-		{
-			if (modelMatrices.size() == BATCH_SIZE)
-			{
-				count++;
-				BoxMesh::getInstance()->drawInstance(renderer, glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f),modelMatrices, BATCH_SIZE);
-				modelMatrices.clear();
-			}
-		}
-		else
-			DrawSand(fixedSand.at(i).mat);
-		
+		int b = (BATCH_SIZE * i);
+		vector<glm::mat4> temp(it + b, it + b + BATCH_SIZE);
+		BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, BATCH_SIZE);
 	}
 
-	for (const glm::mat4 &sand : sandMat)
+	vector<glm::mat4> temp(it + (BATCH_SIZE * sections), fixedSandMat.end());
+	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, fixedSandMat.size() - (BATCH_SIZE * sections));
+
+	//for (int i =  (BATCH_SIZE * sections); i < fixedSandMat.size(); i++)
+	//{
+	//	DrawSand(fixedSandMat.at(i));
+	//}
+
+	//int count = 0;
+	//int nonBatchCount = 0;
+	//for (int i = 0; i < fixedSandMat.size(); i++)
+	//{
+	//	modelMatrices.push_back(fixedSandMat.at(i));
+	//	if ((fixedSandMat.size() - (count * BATCH_SIZE)) >= BATCH_SIZE)
+	//	{
+	//		if (modelMatrices.size() == BATCH_SIZE)
+	//		{
+	//			count++;
+	//			BoxMesh::getInstance()->drawInstance(renderer, glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f),modelMatrices, BATCH_SIZE);
+	//			modelMatrices.clear();
+	//		}
+	//	}
+	//	else
+	//		BoxMesh::getInstance()->drawInstance(renderer, glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f), modelMatrices, nonBatchCount);
+	//		DrawSand(fixedSandMat.at(i));
+	//}
+//	cout << "ActiveSands: " << fixedSandMat.size() << " Batches: " << count << endl;
+
+	//for (const glm::mat4 &sand : sandMat)
+	//{
+	//	DrawSand(sand);
+	//}
+
+	int sections2 = sandMat.size() / BATCH_SIZE;
+	vector<glm::mat4>::iterator it2 = sandMat.begin();
+	for (int i = 0; i < sections2; i++)
 	{
-		DrawSand(sand);
+		int b = (BATCH_SIZE * i);
+		vector<glm::mat4> temp(it2 + b, it2 + b + BATCH_SIZE);
+		BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, BATCH_SIZE);
 	}
 
+	vector<glm::mat4> temp2(it2 + (BATCH_SIZE * sections2), sandMat.end());
+	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp2, sandMat.size() - (BATCH_SIZE * sections2));
 
 	//BoxMesh::getInstance()->drawInstance(renderer,renderer->getColorUniformId(), glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f), 20);
 	
@@ -82,7 +129,7 @@ void SandController::DrawAll()
 
 	glm::mat4 drop = glm::translate(box, glm::vec3(dropPoint.x,dropPoint.y,dropPoint.z)*boxScale.x);
 	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0, 1, 1, 1),//DROPPOINT
-		renderer->getModelMatrixId(), glm::scale(drop, boxScale));
+		renderer->getModelMatrixId(), glm::scale(drop, boxScale * 3.0f));
 
 	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.8,0.8,0.8,0.2),//CONTAINER
 		renderer->getModelMatrixId(), glm::scale(mat, scale));
@@ -113,15 +160,16 @@ void SandController::DrawAll()
 //	return false;
 //}
 
-void SandController::ComputeNextPos(sandPos& sand,size_t index)
+bool SandController::ComputeNextPos(sandPos& sand,size_t index)
 {
 	if (sand.y == 0)
 	{
 		glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale), boxScale);
 		sandToUpdate.erase(sandToUpdate.begin() + index);
-		fixedSand.push_back(FixedSand(temp, sand));
+		fixedSandMat.push_back(temp);
+		fixedSandPos.push_back(sand);
 		//fixedSandGrid.set(sand, true);
-		return;
+		return true;
 	}
 
 	if (!sandGrid.at(sand.x,sand.y - (size_t)1, sand.z))//check bottom of sand
@@ -129,7 +177,7 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 		sandGrid.set(sand, false);
 		sandGrid.set(sand.x, sand.y - (size_t)1, sand.z, true);
 		sand = sandPos(sand.x, sand.y - 1, sand.z);
-		return;
+		return false;
 	}
 
 	for (int i = 1; i >= -1; i--)//check bottom all direction
@@ -151,22 +199,25 @@ void SandController::ComputeNextPos(sandPos& sand,size_t index)
 				sandGrid.set(nX, sand.y - (size_t)1, nZ,true);
 				sandGrid.set(sand, false);
 				sand = sandPos(nX, sand.y - (size_t)1, nZ);
-				return;
+				return false;
 			}
 		}
 	}
 
 	glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(sand.x, sand.y, sand.z) * boxScale),boxScale);
 	sandToUpdate.erase(sandToUpdate.begin() + index);
-	fixedSand.push_back(FixedSand(temp, sand));
+	fixedSandMat.push_back(temp);
+	fixedSandPos.push_back(sand);
 
-	for (int i = 0; i < fixedSand.size(); i++) 
+	for (int i = 0; i < fixedSandPos.size(); i++) 
 	{
-		if (fixedSand[i].pos == sandPos(sand.x, sand.y - 1, sand.z)) {
-			fixedSand.erase(fixedSand.begin() + i);
+		if (fixedSandPos[i].y == sand.y - 1) {
+			fixedSandMat.erase(fixedSandMat.begin() + i);
+			fixedSandPos.erase(fixedSandPos.begin() + i);
 			break;
 		}
 	}
+	return true;
 }
 
 void SandController::AddSand(int x,int y, int z)
