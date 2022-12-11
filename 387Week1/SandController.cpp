@@ -53,7 +53,7 @@ void SandController::DrawSand(const glm::mat4& mat)
 		renderer->getModelMatrixId(), mat);
 }
 
-#define BATCH_SIZE 50
+#define BATCH_SIZE 1000
 void SandController::DrawAllSand()//TODO: BATCH THE NON FIXED SANDS TOO
 {
 	//modelMatrices.clear();

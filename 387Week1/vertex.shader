@@ -16,7 +16,7 @@ out vec3 vLight;
 out vec4 color;
 
 uniform int mode = 0;
-uniform mat4 instanceMatrix[50];
+uniform mat4 instanceMatrix[1000];
 
 void main() { 
 
