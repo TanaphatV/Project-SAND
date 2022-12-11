@@ -107,8 +107,6 @@ void SandController::DrawAll()
 	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.8,0.8,0.8,0.2),//CONTAINER
 		renderer->getModelMatrixId(), glm::scale(mat, scale));
 
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
 }
 
 //bool SandController::ExcludeFromDraw(const sandPos sand, size_t index)

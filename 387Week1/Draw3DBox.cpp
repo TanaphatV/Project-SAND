@@ -33,6 +33,8 @@ SDL_Event sdlEvent;
 GLRenderer* renderer = nullptr;
 
 void initTextVBO();
+void initTexture();
+GLuint TextureID = 0;
 GLuint textTextureID = 0;
 string textString = "Nothing";
 
@@ -40,7 +42,9 @@ GLuint textVAO = 0;
 GLuint textVBO = 0;
 GLuint textVBO2 = 0;
 GLuint textVBO3 = 0;
-void drawText();
+void drawText(string s, SDL_Color color, glm::vec3 pos);
+void beginDrawText();
+void stopDrawText();
 
 int main(int argc, char* argv[])
 {
@@ -92,6 +96,8 @@ int main(int argc, char* argv[])
                     cout << "Unable to initialize OpenGL! " << endl;
                     return false;
                 }
+                TTF_Init();
+                initTexture();
                 BoxMesh::getInstance()->loadData(renderer);
 
 
@@ -206,6 +212,13 @@ int main(int argc, char* argv[])
                 case SDLK_MINUS:
                     radius += 0.5f;
                     break;
+                case SDLK_q:
+                    if(dropSize >= 2)
+                        dropSize--;
+                    break;
+                case SDLK_e:
+                        dropSize++;
+                    break;
                 }
             }
         }
@@ -234,6 +247,10 @@ int main(int argc, char* argv[])
         {            
          
             sandController.DrawAll();
+            drawText(textString, {0,0,0,0}, glm::vec3(300, 570, 0));
+            drawText("Sand dropper size: " + to_string(dropSize), { 0,0,0,0 }, glm::vec3(300, 540, 0));
+            glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
             sandController.UpdateSandPos();
             timer = 0;
             SDL_GL_SwapWindow(window);
@@ -244,6 +261,7 @@ int main(int argc, char* argv[])
         timer += deltaTimeS;
         if (fpsTimer >= 1)
         {
+            textString = "FPS: " + to_string( fps) + " SandCount: " + to_string(sandController.sandCount);
             cout << "FPS: " << fps << " Time: " << time << " SandCount: " << sandController.sandCount << endl;
             fps = 0;
             fpsTimer = 0;
@@ -261,6 +279,43 @@ int main(int argc, char* argv[])
     SDL_Quit();
 
     return 0;
+}
+
+void initTexture() {
+    initTextVBO();
+    glActiveTexture(GL_TEXTURE0);
+    //SDL_Surface* image = IMG_Load("brick.jpg");
+    //if (image == NULL) {
+    //    cerr << "IMG_Load: " << SDL_GetError() << endl;
+    //    return;
+
+    //}
+    glGenTextures(1, &TextureID);
+    glBindTexture(GL_TEXTURE_2D, TextureID);
+
+    //int Mode = GL_RGB;
+
+    //if (image->format->BytesPerPixel == 4) {
+    //    Mode = GL_RGBA;
+    //}
+
+    //glTexImage2D(GL_TEXTURE_2D, 0, Mode, image->w, image->h, 0, Mode, GL_UNSIGNED_BYTE, image->pixels);
+    ////gluBuild2DMipmaps(GL_TEXTURE_2D, Mode, image->w, image->h, Mode, GL_UNSIGNED_BYTE, image->pixels);
+
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+    //SDL_FreeSurface(image);
+
+    glGenTextures(1, &textTextureID);
+    glBindTexture(GL_TEXTURE_2D, textTextureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
 }
 
 void initTextVBO()
@@ -301,19 +356,33 @@ void initTextVBO()
     glEnableVertexAttribArray(3);
 }
 
-void drawText() {
+TTF_Font* font;
+GLuint modeID;
+void beginDrawText()
+{
+
+}
+
+void stopDrawText()
+{
+    glUniform1i(modeID, 0);
+}
+
+void drawText(string s, SDL_Color color, glm::vec3 pos) {
 
     GLuint gProgramID = renderer->gProgramId;
-    GLuint modeID = glGetUniformLocation(gProgramID, "mode");
+    modeID = glGetUniformLocation(gProgramID, "mode");
 
     glUniform1i(modeID, 1);
     glBindTexture(GL_TEXTURE_2D, textTextureID);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //textString = "RED";
-    TTF_Font* font = TTF_OpenFont("cour.ttf", 42);
-    SDL_Color red = { 0, 0, 255,255 };
-    SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font, textString.c_str(), red);
+    font = TTF_OpenFont("cour.ttf", 20);
+    if (font == nullptr)
+        cout << "NULL";
+
+    SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font, s.c_str(), color);
     int colors = surfaceMessage->format->BytesPerPixel;
     GLuint texture_format;
     if (colors == 4) {   // alpha
@@ -342,7 +411,7 @@ void drawText() {
     renderer->resetCamera();
     glm::mat4 projection = glm::ortho(0.0f, 600.0f, 0.0f, 600.0f);
     glUniformMatrix4fv(pMatrix, 1, GL_FALSE, glm::value_ptr(projection));
-    glm::mat4 matrix = glm::translate(glm::mat4(1.0f), glm::vec3(300, 500, 0));
+    glm::mat4 matrix = glm::translate(glm::mat4(1.0f), pos);
 
 
     matrix = glm::scale(matrix, glm::vec3(tw, th, 1.0f));
@@ -350,7 +419,7 @@ void drawText() {
 
     //cout << "Color ID " << renderer->getColorUniformId() << endl;
 
-    glUniform4f(renderer->colorUniformId, 0.0f, 0.0f, 1.0f, 1.0f);
+    glUniform4f(renderer->getColorUniformId(), 0.0f, 0.0f, 1.0f, 1.0f);
     glBindVertexArray(textVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glUniform1i(modeID, 0);

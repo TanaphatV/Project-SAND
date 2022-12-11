@@ -97,8 +97,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)../Libraries\glm\glm;$(ProjectDir)../Libraries\sdl2.0.14\include;$(ProjectDir)../Libraries\glew2.1.0\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)../Libraries\glew2.1.0\lib\x64;$(ProjectDir)../Libraries\sdl2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)../Libraries\glm\glm;$(ProjectDir)../Libraries\sdl2.0.14\include;$(ProjectDir)../Libraries\SDL2_ttf\include;$(ProjectDir)../Libraries\glew2.1.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)../Libraries\glew2.1.0\lib\x64;$(ProjectDir)../Libraries\SDL2_ttf\lib\x64;$(ProjectDir)../Libraries\sdl2.0.14\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -141,7 +141,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;sdl2.lib;sdl2main.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;sdl2.lib;sdl2main.lib;glew32.lib;SDL2_ttf.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

@@ -47,14 +47,7 @@ public:
 
   void beginRender();
   void endRender();
-  void resetCamera()
-  {
-      cameraMatrix = glm::mat4(1.0f);
-      if (cMatrixId != -1) {
-          glUniformMatrix4fv(cMatrixId, 1, GL_FALSE, glm::value_ptr(this->cameraMatrix));
-      }
-  }
-
+  void resetCamera();
   void setOrthoProjection(float left, float right,float bottom, float top, float near, float far);
   void setPerspectiveProjection(float fov, float width, float height, float near, float far);
   void setCamera(glm::vec3 eye, glm::vec3 center, glm::vec3 up);

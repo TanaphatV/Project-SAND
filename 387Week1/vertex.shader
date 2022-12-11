@@ -15,14 +15,17 @@ out vec3 vLight;
 
 out vec4 color;
 
-uniform int mode = 0;
+uniform int instanceMode = 0;
 uniform mat4 instanceMatrix[1000];
+
+out vec2 texCoord;
+layout(location = 3) in vec2 textureCoord;
 
 void main() { 
 
 	vec4 vPosition;
 
-	if(mode == 1)
+	if(instanceMode == 1)
 		vPosition = cMatrix * instanceMatrix[gl_InstanceID] * vec4(vertexPos.xyz, 1.0);
 	else
 		vPosition = cMatrix * mMatrix * vec4(vertexPos.xyz, 1.0);
@@ -35,6 +38,6 @@ void main() {
 	vNormal = mat3(cMatrix * mMatrix) * vertexNormal;
 	//find view-space light vector
 	vLight = lightPos - vPosition.xyz;
-	
+	texCoord = textureCoord;
 	color = uColor;
 }

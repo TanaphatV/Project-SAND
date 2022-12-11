@@ -6,7 +6,13 @@
 
 using namespace std;
 
-
+void GLRenderer::resetCamera()
+{
+    cameraMatrix = glm::mat4(1.0f);
+    if (cMatrixId != -1) {
+        glUniformMatrix4fv(cMatrixId, 1, GL_FALSE, glm::value_ptr(this->cameraMatrix));
+    }
+}
 
 GLRenderer::GLRenderer(int windowWidth, int windowHeight)
 {

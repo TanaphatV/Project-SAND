@@ -16,12 +16,12 @@ void BoxMesh::draw(GLuint colorId, glm::vec4 color, GLuint matrixId, glm::mat4 t
 
 void BoxMesh::drawInstance(GLRenderer* renderer, glm::vec4 color, vector<glm::mat4> &m, int amount)
 {
-    glUniform1i(glGetUniformLocation(renderer->gProgramId, "mode"),1);
+    glUniform1i(glGetUniformLocation(renderer->gProgramId, "instanceMode"),1);
     glUniformMatrix4fv(glGetUniformLocation(renderer->gProgramId, "instanceMatrix"), amount,GL_FALSE, (GLfloat*)m.data());
     glUniform4f(renderer->getColorUniformId(), color.r, color.g, color.b, color.a);
     glBindVertexArray(vaoId);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, amount);
-    glUniform1i(glGetUniformLocation(renderer->gProgramId, "mode"), 0);
+    glUniform1i(glGetUniformLocation(renderer->gProgramId, "instanceMode"), 0);
 }
 
 glm::vec3 BoxMesh::getNormal(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
