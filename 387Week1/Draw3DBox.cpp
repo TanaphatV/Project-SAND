@@ -8,6 +8,8 @@
 #include <SDL_main.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
@@ -29,6 +31,16 @@ SDL_GLContext glContext;
 SDL_Event sdlEvent;
 
 GLRenderer* renderer = nullptr;
+
+void initTextVBO();
+GLuint textTextureID = 0;
+string textString = "Nothing";
+
+GLuint textVAO = 0;
+GLuint textVBO = 0;
+GLuint textVBO2 = 0;
+GLuint textVBO3 = 0;
+void drawText();
 
 int main(int argc, char* argv[])
 {
@@ -109,6 +121,8 @@ int main(int argc, char* argv[])
     sandController.dropPoint = sandPos(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
     sandPos& dropPoint = sandController.dropPoint;
 
+    int dropSize = 1;
+
     float fixedTimer = 0;
     // Game loop
     while (!quit)
@@ -144,6 +158,18 @@ int main(int argc, char* argv[])
             if (keystate[SDL_SCANCODE_SPACE])
             {
                 sandController.AddSand(dropPoint);
+                for (int i = 0; i < dropSize; i++)
+                {
+                    sandController.AddSand(dropPoint.x + i, sandBoxSize - 1, dropPoint.z);
+                    sandController.AddSand(dropPoint.x - i, sandBoxSize - 1, dropPoint.z);
+                    sandController.AddSand(dropPoint.x + i, sandBoxSize - 1, dropPoint.z + i);
+                    sandController.AddSand(dropPoint.x - i, sandBoxSize - 1, dropPoint.z - i);
+                    sandController.AddSand(dropPoint.x + i, sandBoxSize - 1, dropPoint.z - i);
+                    sandController.AddSand(dropPoint.x - i, sandBoxSize - 1, dropPoint.z + i);
+                    sandController.AddSand(dropPoint.x, sandBoxSize - 1, dropPoint.z + i);
+                    sandController.AddSand(dropPoint.x, sandBoxSize - 1, dropPoint.z - i);
+                    sandController.AddSand(dropPoint.x, sandBoxSize - 1, dropPoint.z);
+                }
             }
         }
         fixedTimer += deltaTimeS;
@@ -205,19 +231,7 @@ int main(int argc, char* argv[])
         //space = glm::rotate(space, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
 
         if (timer >= SimulateFrequency)
-        {
-            for (int i = 1; i < 5; i++)
-            {
-                sandController.AddSand(sandBoxSize / 2 + i, sandBoxSize - 1, sandBoxSize / 2);
-                sandController.AddSand(sandBoxSize / 2 - i, sandBoxSize - 1, sandBoxSize / 2);
-                sandController.AddSand(sandBoxSize / 2 + i, sandBoxSize - 1, sandBoxSize / 2 + i);
-                sandController.AddSand(sandBoxSize / 2 - i, sandBoxSize - 1, sandBoxSize / 2 - i);
-                sandController.AddSand(sandBoxSize / 2 + i, sandBoxSize - 1, sandBoxSize / 2 - i);
-                sandController.AddSand(sandBoxSize / 2 - i, sandBoxSize - 1, sandBoxSize / 2 +i);
-                sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 + i);
-                sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2 - i);
-                sandController.AddSand(sandBoxSize / 2, sandBoxSize - 1, sandBoxSize / 2);
-            }
+        {            
          
             sandController.DrawAll();
             sandController.UpdateSandPos();
@@ -249,7 +263,99 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+void initTextVBO()
+{
+    GLfloat vertex[] = {
+        -0.5f, 0.5f,0.0f,
+        -0.5f, -0.5f,0.0f,
+        0.5f, 0.5f,0.0f,
+        0.5f, 0.5f,0.0f,
+       -0.5f, -0.5f,0.0f,
+        0.5f,-0.5f,0.0f
+    };
 
+    glGenVertexArrays(1, &textVAO);
+    glBindVertexArray(textVAO);
+    //Create VBO
+    glGenBuffers(1, &(textVBO));
+    glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+    glBufferData(GL_ARRAY_BUFFER, 3 * 6 * sizeof(GLfloat), vertex, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(renderer->getVertexPosAttributeID());
+    glVertexAttribPointer(renderer->getVertexPosAttributeID(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
+
+    glGenBuffers(1, &(textVBO2));
+    glBindBuffer(GL_ARRAY_BUFFER, textVBO2);
+    glBufferData(GL_ARRAY_BUFFER, 3 * 6 * sizeof(GLfloat), vertex, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(renderer->getVertexNormalAttributeID());
+    glVertexAttribPointer(renderer->getVertexNormalAttributeID(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
+
+    GLfloat textCoord[] = {
+        0.0f, 0.0f,   0.0f, 1.0f,   1.0f, 0.0f,
+        1.0f, 0.0f,   0.0f, 1.0f,   1.0f, 1.0f
+    };
+    glGenBuffers(1, &(textVBO3));
+    glBindBuffer(GL_ARRAY_BUFFER, textVBO3);
+    glBufferData(GL_ARRAY_BUFFER, 2 * 3 * 2 * sizeof(GLfloat), textCoord, GL_STATIC_DRAW);
+    //glEnableVertexAttribArray(renderer->getVertexNormalAttributeID());
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), NULL);
+    glEnableVertexAttribArray(3);
+}
+
+void drawText() {
+
+    GLuint gProgramID = renderer->gProgramId;
+    GLuint modeID = glGetUniformLocation(gProgramID, "mode");
+
+    glUniform1i(modeID, 1);
+    glBindTexture(GL_TEXTURE_2D, textTextureID);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //textString = "RED";
+    TTF_Font* font = TTF_OpenFont("cour.ttf", 42);
+    SDL_Color red = { 0, 0, 255,255 };
+    SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font, textString.c_str(), red);
+    int colors = surfaceMessage->format->BytesPerPixel;
+    GLuint texture_format;
+    if (colors == 4) {   // alpha
+        if (surfaceMessage->format->Rmask == 0x000000ff)
+            texture_format = GL_RGBA;
+        else
+            texture_format = GL_BGRA;
+    }
+    else {             // no alpha
+        if (surfaceMessage->format->Rmask == 0x000000ff)
+            texture_format = GL_RGB;
+        else
+            texture_format = GL_BGR;
+    }
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surfaceMessage->w, surfaceMessage->h, 0, texture_format, GL_UNSIGNED_BYTE, surfaceMessage->pixels);
+    int tw = surfaceMessage->w;
+    int th = surfaceMessage->h;
+    SDL_FreeSurface(surfaceMessage);
+    TTF_CloseFont(font);
+
+    GLuint mMatrix = glGetUniformLocation(gProgramID, "mMatrix");
+    GLuint pMatrix = glGetUniformLocation(gProgramID, "pMatrix");
+    GLuint cMatrix = glGetUniformLocation(gProgramID, "cMatrix");
+    //cout << "m " << mMatrix << "p " << pMatrix << "c " << cMatrix << endl;
+    glUniformMatrix4fv(cMatrix, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+    renderer->resetCamera();
+    glm::mat4 projection = glm::ortho(0.0f, 600.0f, 0.0f, 600.0f);
+    glUniformMatrix4fv(pMatrix, 1, GL_FALSE, glm::value_ptr(projection));
+    glm::mat4 matrix = glm::translate(glm::mat4(1.0f), glm::vec3(300, 500, 0));
+
+
+    matrix = glm::scale(matrix, glm::vec3(tw, th, 1.0f));
+    glUniformMatrix4fv(mMatrix, 1, GL_FALSE, glm::value_ptr(matrix));
+
+    //cout << "Color ID " << renderer->getColorUniformId() << endl;
+
+    glUniform4f(renderer->colorUniformId, 0.0f, 0.0f, 1.0f, 1.0f);
+    glBindVertexArray(textVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glUniform1i(modeID, 0);
+    //glDisable(GL_BLEND);
+}
 
 
 

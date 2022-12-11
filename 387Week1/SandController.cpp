@@ -94,15 +94,15 @@ void SandController::DrawAll()
 	glm::mat4 mat = glm::translate(box, glm::vec3(1, 1, 1));
 	glm::vec3 scale = boxScale * (float)size;
 
-	//BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.7, 0.7, 0.7, 1),
-	//	renderer->getModelMatrixId(), glm::scale(glm::translate(mat,glm::vec3(0,-1 - boxScale.y,0)), glm::vec3(scale.x,boxScale.y,scale.z)));//CONTAINER BASE
+	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.7, 0.7, 0.7, 1),
+		renderer->getModelMatrixId(), glm::scale(glm::translate(mat,glm::vec3(0,-1 - boxScale.y,0)), glm::vec3(scale.x,boxScale.y,scale.z)));//CONTAINER BASE
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);
 
 	glm::mat4 drop = glm::translate(box, glm::vec3(dropPoint.x,dropPoint.y,dropPoint.z)*boxScale.x);
 	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0, 1, 1, 1),//DROPPOINT
-		renderer->getModelMatrixId(), glm::scale(drop, boxScale * 3.0f));
+		renderer->getModelMatrixId(), glm::scale(drop, boxScale * 9.0f));
 
 	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0.8,0.8,0.8,0.2),//CONTAINER
 		renderer->getModelMatrixId(), glm::scale(mat, scale));
@@ -220,8 +220,9 @@ void SandController::UpdateFixedSand()
 
 void SandController::AddSand(int x,int y, int z)
 {
-	if (x >= size || y >= size || z >= size)
+	if (x >= size|| y >= size || z >= size || x < 0 || z < 0)
 		return;
+
 	if (!sandGrid.at(x,y,z))
 	{
 		sandToUpdate.push_back(sandPos(x, y, z));
@@ -232,7 +233,7 @@ void SandController::AddSand(int x,int y, int z)
 
 void SandController::AddSand(sandPos s)
 {
-	if (s.x >= size || s.y >= size || s.z >= size)
+	if (s.x >= size || s.y >= size || s.z >= size || s.x < 0 || s.z < 0)
 		return;
 	if (!sandGrid.at(s))
 	{

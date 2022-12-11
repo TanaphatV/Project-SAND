@@ -2,29 +2,29 @@
 #include "BoxMesh.h"
 #include <vector>
 
-//typedef glm::vec<3,int,glm::packed_highp> sandPos;
+typedef glm::vec<3,int,glm::packed_highp> sandPos;
 
-struct sandPos {
-	int x;
-	int y;
-	int z;
-	sandPos() {
-		x = 0;
-		y = 0;
-		z = 0;
-
-	}
-	sandPos(int X, int Y, int Z)
-	{
-		x = X;
-		y = Y;
-		z = Z;
-	}
-
-	bool operator==(sandPos s) {
-		return (x == s.x) && (y == s.y) && (z == s.z);
-	}
-};
+//struct sandPos {
+//	int x;
+//	int y;
+//	int z;
+//	sandPos() {
+//		x = 0;
+//		y = 0;
+//		z = 0;
+//
+//	}
+//	sandPos(int X, int Y, int Z)
+//	{
+//		x = X;
+//		y = Y;
+//		z = Z;
+//	}
+//
+//	bool operator==(sandPos s) {
+//		return (x == s.x) && (y == s.y) && (z == s.z);
+//	}
+//};
 
 class Array3d// packed bits into unsigned char, thus containing 8 booleans in 1 element
 {
