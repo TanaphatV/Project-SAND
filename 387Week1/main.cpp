@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     else
     {
         // Create window
-        window = SDL_CreateWindow("3DBox", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+        window = SDL_CreateWindow("SandBox", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
         if (window == NULL)
         {
             // Display error message
@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
         if (fpsTimer >= 1)
         {
             textString = "FPS: " + to_string( fps) + " SandCount: " + to_string(sandController.sandCount);
-            cout << "FPS: " << fps << " Time: " << time << " SandCount: " << sandController.sandCount << endl;
+            //cout << "FPS: " << fps << " Time: " << time << " SandCount: " << sandController.sandCount << endl;
             fps = 0;
             fpsTimer = 0;
         }

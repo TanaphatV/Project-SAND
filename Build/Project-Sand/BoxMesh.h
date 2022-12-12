@@ -14,7 +14,6 @@ public:
 	void drawInstance(GLRenderer* renderer, glm::vec4 color, vector<glm::mat4>& m, int amount);
 	virtual void loadData(GLRenderer* renderer);
 	static BoxMesh* getInstance();
-	GLuint vboI = 0;
 	GLuint getVao() {
 		return vaoId;
 	}
