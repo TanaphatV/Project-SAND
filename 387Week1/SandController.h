@@ -134,12 +134,11 @@ class SandController
 		glm::vec4 SAND_COLOR;
 		glm::mat4 box;
 		GLRenderer* renderer;
-		int boxSize;
+		int size;
 		SandArea sandGrid;
 		//Array3d fixedSandGrid;
 		vector<glm::mat4> sandMat;//unfixed sand that are still moving
 		vector<glm::mat4> fixedSandMat;//fixed sand store still sands
-		vector<glm::mat4> allSandMat;
 		vector<sandPos> fixedSandPos;
 		vector<sandPos> sandToUpdate;//used to help excluding sands that doesnt need updating
 		//vector<glm::mat4> modelMatrices;
