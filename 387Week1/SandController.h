@@ -26,24 +26,24 @@ typedef glm::vec<3,int,glm::packed_highp> sandPos;
 //	}
 //};
 
-class Array3d// packed bits into unsigned char, thus containing 8 booleans in 1 element
+class SandArea// packed bits into unsigned char, thus containing 8 true/false in each variable
 {
 	size_t width, height, depth;
-	vector<unsigned char> data;// need to be char cuz bool can't be lvalue lmao
+	vector<unsigned char> data;
 
 public:
-	Array3d(size_t width, size_t height, size_t depth) :
+	SandArea(size_t width, size_t height, size_t depth) :
 		width(width),
 		height(height),
 		depth(depth),
 		data(((width* height* depth)/8) + 1)
 	{}
 
-	bool at(size_t x, size_t y, size_t z)
+	bool ContainSandAt(size_t x, size_t y, size_t z)
 	{
 		if (x >= width || y >= height || z >= depth)
 			return false;
-		else if (x < 0 || y < 0 | z < 0)
+		else if (x < 0 || y < 0 || z < 0)
 			return false;
 
 		int temp = x * height * depth + y * depth + z;
@@ -52,7 +52,7 @@ public:
 		return data.at(index) & (1 << dif);
 	}
 
-	bool at(sandPos s)
+	bool ContainSandAt(sandPos s)
 	{
 		if (s.x >= width || s.y >= height || s.z >= depth)
 			return false;
@@ -66,7 +66,7 @@ public:
 		return data.at(index) & (1 << dif);
 	}
 
-	void set(size_t x, size_t y, size_t z, bool val)
+	void SetSand(size_t x, size_t y, size_t z, bool val)
 	{
 		if (x >= width || y >= height || z >= depth)
 			return;
@@ -82,7 +82,7 @@ public:
 			data.at(index) &= ~(1 << dif);
 	}
 
-	void set(sandPos s, bool val)
+	void SetSand(sandPos s, bool val)
 	{
 		if (s.x >= width || s.y >= height || s.z >= depth)
 			return;
@@ -135,7 +135,7 @@ class SandController
 		glm::mat4 box;
 		GLRenderer* renderer;
 		int size;
-		Array3d sandGrid;
+		SandArea sandGrid;
 		//Array3d fixedSandGrid;
 		vector<glm::mat4> sandMat;//unfixed sand that are still moving
 		vector<glm::mat4> fixedSandMat;//fixed sand store still sands
@@ -143,7 +143,7 @@ class SandController
 		vector<sandPos> sandToUpdate;//used to help excluding sands that doesnt need updating
 		//vector<glm::mat4> modelMatrices;
 		glm::vec3 boxScale;
-		bool ComputeNextPos(sandPos& sand, size_t index);
+		bool TryMoveSand(sandPos& sand, size_t index);
 		void UpdateFixedSand();
 		/*bool ExcludeFromDraw(const sandPos sand, size_t index);
 		void UpdateNeighbour(const sandPos sand);*/

@@ -34,7 +34,7 @@ void SandController::UpdateSandPos()
 		sandPos& s = sandToUpdate.at(i);
 		glm::mat4 temp = glm::scale(glm::translate(box, glm::vec3(s.x, s.y, s.z) * boxScale), boxScale);
 		sandMat.push_back(temp);
-		if (ComputeNextPos(s, i))
+		if (TryMoveSand(s, i))
 		{
 			i--;
 			upSize--;
@@ -50,37 +50,26 @@ void SandController::DrawSand(const glm::mat4& mat)
 		renderer->getModelMatrixId(), mat);
 }
 
-#define BATCH_SIZE 1000
-void SandController::DrawAllSand()//TODO: BATCH THE NON FIXED SANDS TOO
+
+void SandController::DrawAllSand()
 {
+	const size_t BATCH_SIZE = 1000;
 	//modelMatrices.clear();
-	int sections = fixedSandMat.size() / BATCH_SIZE;
-	vector<glm::mat4>::iterator it = fixedSandMat.begin();
+	vector<glm::mat4> allSandMat;
+	allSandMat.insert(allSandMat.end(),fixedSandMat.begin(),fixedSandMat.end());
+	allSandMat.insert(allSandMat.end(), sandMat.begin(), sandMat.end());
+
+	size_t sections = allSandMat.size() / BATCH_SIZE;
+	vector<glm::mat4>::iterator it = allSandMat.begin();
 	for (int i = 0; i < sections; i++)
 	{
-		int b = (BATCH_SIZE * i);
-		vector<glm::mat4> temp(it + b, it + b + BATCH_SIZE);
+		int batchStartIt = (BATCH_SIZE * i);
+		vector<glm::mat4> temp(it + batchStartIt, it + batchStartIt + BATCH_SIZE);
 		BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, BATCH_SIZE);
 	}
 
-	vector<glm::mat4> temp(it + (BATCH_SIZE * sections), fixedSandMat.end());
-	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, fixedSandMat.size() - (BATCH_SIZE * sections));
-
-
-	int sections2 = sandMat.size() / BATCH_SIZE;
-	vector<glm::mat4>::iterator it2 = sandMat.begin();
-	for (int i = 0; i < sections2; i++)
-	{
-		int b = (BATCH_SIZE * i);
-		vector<glm::mat4> temp(it2 + b, it2 + b + BATCH_SIZE);
-		BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, BATCH_SIZE);
-	}
-
-	vector<glm::mat4> temp2(it2 + (BATCH_SIZE * sections2), sandMat.end());
-	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp2, sandMat.size() - (BATCH_SIZE * sections2));
-
-	//BoxMesh::getInstance()->drawInstance(renderer,renderer->getColorUniformId(), glm::vec4(246.0f / 255.0f, 215.0f / 255.0f, 176.0f / 255.0f, 0.5f), 20);
-	
+	vector<glm::mat4> temp(it + (BATCH_SIZE * sections), allSandMat.end());
+	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, allSandMat.size() - (BATCH_SIZE * sections));
 }
 
 void SandController::DrawAll()
@@ -106,29 +95,8 @@ void SandController::DrawAll()
 
 }
 
-//bool SandController::ExcludeFromDraw(const sandPos sand, size_t index)
-//{
-//	unsigned char a = 0;
-//
-//	a |= fixedSandGrid.at(sand.x + 1, sand.y, sand.z);
-//	a |= (fixedSandGrid.at(sand.x - 1, sand.y, sand.z) << 1);
-//	a |= (fixedSandGrid.at(sand.x, sand.y + 1, sand.z) << 2);
-//	a |= (fixedSandGrid.at(sand.x, sand.y - 1, sand.z) << 3);
-//	a |= (fixedSandGrid.at(sand.x, sand.y, sand.z + 1) << 4);
-//	a |= (fixedSandGrid.at(sand.x, sand.y, sand.z - 1) << 5);
-//
-//	if ((a & 63) == 63)
-//	{
-//		fixedSandGrid.set(sand, false);
-//		fixedSand.erase(fixedSand.begin() + index);
-//		return true;
-//	}
-//
-//	
-//	return false;
-//}
 
-bool SandController::ComputeNextPos(sandPos& sand,size_t index)
+bool SandController::TryMoveSand(sandPos& sand,size_t index)
 {
 	if (sand.y == 0)
 	{
@@ -140,11 +108,11 @@ bool SandController::ComputeNextPos(sandPos& sand,size_t index)
 		return true;
 	}
 
-	if (!sandGrid.at(sand.x,sand.y - (int)1, sand.z))//check bottom of sand
+	if (!sandGrid.ContainSandAt(sand.x,sand.y - 1, sand.z))//check bottom of sand
 	{
-		sandGrid.set(sand, false);
-		sandGrid.set(sand.x, sand.y - (int)1, sand.z, true);
-		sand = sandPos(sand.x, sand.y - (int)1, sand.z);
+		sandGrid.SetSand(sand, false);
+		sandGrid.SetSand(sand.x, sand.y - 1, sand.z, true);
+		sand = sandPos(sand.x, sand.y - 1, sand.z);
 		return false;
 	}
 
@@ -162,11 +130,11 @@ bool SandController::ComputeNextPos(sandPos& sand,size_t index)
 			if (nZ < 0 || nZ >= size)
 				continue;
 
-			if (!sandGrid.at(nX, sand.y - (int)1, nZ))
+			if (!sandGrid.ContainSandAt(nX, sand.y - 1, nZ))
 			{
-				sandGrid.set(nX, sand.y - (int)1, nZ,true);
-				sandGrid.set(sand, false);
-				sand = sandPos(nX, sand.y - (int)1, nZ);
+				sandGrid.SetSand(nX, sand.y - 1, nZ,true);
+				sandGrid.SetSand(sand, false);
+				sand = sandPos(nX, sand.y - 1, nZ);
 				return false;
 			}
 		}
@@ -186,30 +154,31 @@ void SandController::UpdateFixedSand()
 	if (fixedSandPos.size() == 0)
 		return;
 
-	sandPos& sand = fixedSandPos.back();
-	if (sand.y == 0)
+	int lastIndex = fixedSandPos.size() - 1;
+	sandPos& lastSand = fixedSandPos.at(lastIndex);
+	if (lastSand.y == 0)
 		return;
-	if (sand.x == 0 || sand.x == size - 1 || sand.z == 0 || sand.z == size - 1)
+	if (lastSand.x == 0 || lastSand.x == size - 1 || lastSand.z == 0 || lastSand.z == size - 1)
 		return;
 
-	int toErase = -1;
-	for (int i = 0; i < fixedSandPos.size(); i++)
+	int indexToErase = -1;
+	for (int i = 0; i < fixedSandPos.size(); i++)//find the sand beneath the last sand
 	{
-		if ((fixedSandPos[i].y == (sand.y - 1)) /*&& fixedSandPos[i].x == sand.x && fixedSandPos[i].z == sand.z*/) {
-			if (fixedSandPos[i].x != sand.x)
+		if ((fixedSandPos[i].y == (lastSand.y - 1))) {
+			if (fixedSandPos[i].x != lastSand.x)
 				continue;
-			if (fixedSandPos[i].z != sand.z)
+			if (fixedSandPos[i].z != lastSand.z)
 				continue;
-			toErase = i;
+			indexToErase = i;
 			erased++;
 
 			break;
 		}
 	}
-	if (toErase != -1)
+	if (indexToErase != -1)//erase covered sand
 	{
-		fixedSandMat.erase(fixedSandMat.begin() + toErase);
-		fixedSandPos.erase(fixedSandPos.begin() + toErase);
+		fixedSandMat.erase(fixedSandMat.begin() + indexToErase);
+		fixedSandPos.erase(fixedSandPos.begin() + indexToErase);
 	}
 }
 
@@ -218,10 +187,10 @@ void SandController::AddSand(int x,int y, int z)
 	if (x >= size|| y >= size || z >= size || x < 0 || z < 0)
 		return;
 
-	if (!sandGrid.at(x,y,z))
+	if (!sandGrid.ContainSandAt(x,y,z))
 	{
 		sandToUpdate.push_back(sandPos(x, y, z));
-		sandGrid.set(x, y, z,true);
+		sandGrid.SetSand(x, y, z,true);
 		sandCount+= 1;
 	}
 }
@@ -230,10 +199,10 @@ void SandController::AddSand(sandPos s)
 {
 	if (s.x >= size || s.y >= size || s.z >= size || s.x < 0 || s.z < 0)
 		return;
-	if (!sandGrid.at(s))
+	if (!sandGrid.ContainSandAt(s))
 	{
 		sandToUpdate.push_back(s);
-		sandGrid.set(s, true);
+		sandGrid.SetSand(s, true);
 		sandCount += 1;
 	}
 }
