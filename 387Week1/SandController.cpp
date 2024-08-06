@@ -1,7 +1,7 @@
 #include "SandController.h"
 
 SandController::SandController(int size, float boxScale, glm::mat4 center, GLRenderer* renderer) : sandGrid(size,size,size) /*, fixedSandGrid(size, size, size)*/ {
-	this->size = size;
+	this->boxSize = size;
 	this->boxScale = glm::vec3(boxScale,boxScale,boxScale);
 	this->renderer = renderer;
 	box = glm::translate(center, glm::vec3(-1, -1, -1));//start at bottom left
@@ -53,23 +53,22 @@ void SandController::DrawSand(const glm::mat4& mat)
 
 void SandController::DrawAllSand()
 {
-	const size_t BATCH_SIZE = 1000;
 	//modelMatrices.clear();
 	vector<glm::mat4> allSandMat;
 	allSandMat.insert(allSandMat.end(),fixedSandMat.begin(),fixedSandMat.end());
 	allSandMat.insert(allSandMat.end(), sandMat.begin(), sandMat.end());
 
-	size_t sections = allSandMat.size() / BATCH_SIZE;
+	size_t sections = 1;
 	vector<glm::mat4>::iterator it = allSandMat.begin();
-	for (int i = 0; i < sections; i++)
-	{
-		int batchStartIt = (BATCH_SIZE * i);
-		vector<glm::mat4> temp(it + batchStartIt, it + batchStartIt + BATCH_SIZE);
-		BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, BATCH_SIZE);
-	}
+	//for (int i = 0; i < sections; i++)
+	//{
+	//	int batchStartIt = 0;
+	//	vector<glm::mat4> temp(it + batchStartIt, it + batchStartIt + BATCH_SIZE);
+	//	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, BATCH_SIZE);
+	//}
 
-	vector<glm::mat4> temp(it + (BATCH_SIZE * sections), allSandMat.end());
-	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, temp, allSandMat.size() - (BATCH_SIZE * sections));
+	//vector<glm::mat4> temp(it, allSandMat.end());
+	BoxMesh::getInstance()->drawInstance(renderer, SAND_COLOR, allSandMat, allSandMat.size());
 }
 
 void SandController::DrawAll()
@@ -77,7 +76,7 @@ void SandController::DrawAll()
 //	cout << dropPoint.y << endl;
 	DrawAllSand();
 	glm::mat4 mat = glm::translate(box, glm::vec3(1, 1, 1));
-	glm::vec3 scale = boxScale * (float)size;
+	glm::vec3 scale = boxScale * (float)boxSize;
 
 	BoxMesh::getInstance()->draw(renderer->getColorUniformId(), glm::vec4(0, 0, 0, 1),
 		renderer->getModelMatrixId(), glm::scale(glm::translate(mat,glm::vec3(0,-1 - boxScale.y,0)), glm::vec3(scale.x,boxScale.y,scale.z)));//CONTAINER BASE
@@ -119,7 +118,7 @@ bool SandController::TryMoveSand(sandPos& sand,size_t index)
 	for (int i = 1; i >= -1; i--)//check bottom all direction
 	{
 		long nX = sand.x + i;
-		if (nX < 0 || nX >= size)
+		if (nX < 0 || nX >= boxSize)
 			continue;
 
 		for (int j = 1; j >= -1; j--)
@@ -127,7 +126,7 @@ bool SandController::TryMoveSand(sandPos& sand,size_t index)
 			if (i == 0 && j == 0)
 				continue;
 			int nZ = sand.z + j;
-			if (nZ < 0 || nZ >= size)
+			if (nZ < 0 || nZ >= boxSize)
 				continue;
 
 			if (!sandGrid.ContainSandAt(nX, sand.y - 1, nZ))
@@ -158,7 +157,7 @@ void SandController::UpdateFixedSand()
 	sandPos& lastSand = fixedSandPos.at(lastIndex);
 	if (lastSand.y == 0)
 		return;
-	if (lastSand.x == 0 || lastSand.x == size - 1 || lastSand.z == 0 || lastSand.z == size - 1)
+	if (lastSand.x == 0 || lastSand.x == boxSize - 1 || lastSand.z == 0 || lastSand.z == boxSize - 1)
 		return;
 
 	int indexToErase = -1;
@@ -184,7 +183,7 @@ void SandController::UpdateFixedSand()
 
 void SandController::AddSand(int x,int y, int z)
 {
-	if (x >= size|| y >= size || z >= size || x < 0 || z < 0)
+	if (x >= boxSize || y >= boxSize || z >= boxSize || x < 0 || z < 0)
 		return;
 
 	if (!sandGrid.ContainSandAt(x,y,z))
@@ -197,7 +196,7 @@ void SandController::AddSand(int x,int y, int z)
 
 void SandController::AddSand(sandPos s)
 {
-	if (s.x >= size || s.y >= size || s.z >= size || s.x < 0 || s.z < 0)
+	if (s.x >= boxSize || s.y >= boxSize || s.z >= boxSize || s.x < 0 || s.z < 0)
 		return;
 	if (!sandGrid.ContainSandAt(s))
 	{
